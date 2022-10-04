@@ -87,7 +87,7 @@
 
     <!-- Tiles native to System UI. Order should match "quick_settings_tiles_default" -->
     <string name="quick_settings_tiles_stock" translatable="false">
-        internet,wifi,cell,bt,flashlight,dnd,alarm,airplane,controls,wallet,rotation,battery,cast,screenrecord,mictoggle,cameratoggle,location,nfc,hotspot,inversion,saver,dark,work,night,reverse,reduce_brightness,qr_code_scanner,onehanded,color_correction,heads_up
+        internet,wifi,cell,bt,flashlight,dnd,alarm,airplane,controls,wallet,rotation,battery,cast,screenrecord,mictoggle,cameratoggle,location,nfc,hotspot,inversion,saver,dark,work,night,reverse,reduce_brightness,qr_code_scanner,onehanded,color_correction,heads_up,caffeine
     </string>
 
     <!-- The tiles to display in QuickSettings -->
@@ -702,14 +702,12 @@
     <!-- Icons that don't show in a collapsed non-keyguard statusbar -->
     <string-array name="config_collapsed_statusbar_icon_blocklist" translatable="false">
         <item>@*android:string/status_bar_volume</item>
-        <item>@*android:string/status_bar_alarm_clock</item>
         <item>@*android:string/status_bar_call_strength</item>
     </string-array>
 
     <!-- Icons that don't show in a collapsed statusbar on keyguard -->
     <string-array name="config_keyguard_statusbar_icon_blocklist" translatable="false">
         <item>@*android:string/status_bar_volume</item>
-        <item>@*android:string/status_bar_alarm_clock</item>
         <item>@*android:string/status_bar_call_strength</item>
     </string-array>
 

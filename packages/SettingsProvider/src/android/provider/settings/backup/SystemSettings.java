@@ -93,5 +93,7 @@ public class SystemSettings {
         Settings.System.NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD,
         Settings.System.FULLSCREEN_GESTURES,
         Settings.System.KEYGAURD_MEDIA_ART,
+        Settings.System.NAVIGATION_BAR_INVERSE,
+        Settings.System.ENABLE_RIPPLE_EFFECT,
     };
 }

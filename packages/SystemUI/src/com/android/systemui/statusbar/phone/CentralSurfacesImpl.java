@@ -130,6 +130,7 @@ import com.android.systemui.ActivityIntentHelper;
 import com.android.systemui.AutoReinflateContainer;
 import com.android.systemui.CoreStartable;
 import com.android.systemui.DejankUtils;
+import com.android.systemui.Dependency;
 import com.android.systemui.EventLogTags;
 import com.android.systemui.InitController;
 import com.android.systemui.Prefs;
@@ -161,6 +162,7 @@ import com.android.systemui.keyguard.KeyguardUnlockAnimationController;
 import com.android.systemui.keyguard.KeyguardViewMediator;
 import com.android.systemui.keyguard.ScreenLifecycle;
 import com.android.systemui.keyguard.WakefulnessLifecycle;
+import com.android.systemui.model.SysUiState;
 import com.android.systemui.navigationbar.NavigationBarController;
 import com.android.systemui.navigationbar.NavigationBarView;
 import com.android.systemui.plugins.DarkIconDispatcher;
@@ -225,6 +227,7 @@ import com.android.systemui.statusbar.phone.panelstate.PanelExpansionChangeEvent
 import com.android.systemui.statusbar.phone.panelstate.PanelExpansionStateManager;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.ConfigurationController.ConfigurationListener;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
@@ -439,6 +442,13 @@ public class CentralSurfacesImpl extends CoreStartable implements
     public void togglePanel() {
         mCommandQueueCallbacks.togglePanel();
     }
+
+    /** */
+    @Override
+    public void toggleCameraFlash() {
+        mCommandQueueCallbacks.toggleCameraFlash();
+    }
+
     /**
      * The {@link StatusBarState} of the status bar.
      */
@@ -679,6 +689,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
 
     private final InteractionJankMonitor mJankMonitor;
 
+    private final SysUiState mSysUiState;
+    private final BurnInProtectionController mBurnInProtectionController;
 
     /**
      * Public constructor for CentralSurfaces.
@@ -784,7 +796,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
             DeviceStateManager deviceStateManager,
             DreamOverlayStateController dreamOverlayStateController,
             WiredChargingRippleController wiredChargingRippleController,
-            IDreamManager dreamManager) {
+            IDreamManager dreamManager,
+            SysUiState sysUiState,
+            BurnInProtectionController burnInProtectionController) {
         super(context);
         mNotificationsController = notificationsController;
         mFragmentService = fragmentService;
@@ -871,7 +885,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mWallpaperManager = wallpaperManager;
         mJankMonitor = jankMonitor;
         mDreamOverlayStateController = dreamOverlayStateController;
-
+        mSysUiState = sysUiState;
         mLockscreenShadeTransitionController = lockscreenShadeTransitionController;
         mStartingSurfaceOptional = startingSurfaceOptional;
         mNotifPipelineFlags = notifPipelineFlags;
@@ -880,6 +894,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
         statusBarWindowStateController.addListener(this::onStatusBarWindowStateChanged);
 
         mScreenOffAnimationController = screenOffAnimationController;
+
+        mBurnInProtectionController = burnInProtectionController;
 
         mPanelExpansionStateManager.addExpansionListener(this::onPanelExpansionChanged);
 
@@ -911,6 +927,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         deviceStateManager.registerCallback(mMainExecutor,
                 new FoldStateListener(mContext, this::onFoldedStateChanged));
         wiredChargingRippleController.registerCallbacks();
+        mBurnInProtectionController.setCentralSurfaces(this);
     }
 
     @Override
@@ -1200,6 +1217,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                     mNotificationPanelViewController.updatePanelExpansionAndVisibility();
                     setBouncerShowingForStatusBarComponents(mBouncerShowing);
                     checkBarModes();
+                    mBurnInProtectionController.setPhoneStatusBarView(mStatusBarView);
                 });
         initializer.initializeStatusBar(mCentralSurfacesComponent);
 
@@ -3635,6 +3653,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
 
             updateNotificationPanelTouchState();
             mNotificationShadeWindowViewController.cancelCurrentTouch();
+
+            mBurnInProtectionController.stopShiftTimer();
             if (mLaunchCameraOnFinishedGoingToSleep) {
                 mLaunchCameraOnFinishedGoingToSleep = false;
 
@@ -3712,6 +3732,18 @@ public class CentralSurfacesImpl extends CoreStartable implements
         public void onFinishedWakingUp() {
             mWakeUpCoordinator.setFullyAwake(true);
             mWakeUpCoordinator.setWakingUp(false);
+            if (mKeyguardStateController.isOccluded()
+                    && !mDozeParameters.canControlUnlockedScreenOff()) {
+                // When the keyguard is occluded we don't use the KEYGUARD state which would
+                // normally cause these redaction updates.  If AOD is on, the KEYGUARD state is used
+                // to show the doze, AND UnlockedScreenOffAnimationController.onFinishedWakingUp()
+                // would force a KEYGUARD state that would take care of recalculating redaction.
+                // So if AOD is off or unsupported we need to trigger these updates at screen on
+                // when the keyguard is occluded.
+                mLockscreenUserManager.updatePublicMode();
+                mNotificationPanelViewController.getNotificationStackScrollLayoutController()
+                        .updateSensitivenessForOccludedWakeup();
+            }
             if (mLaunchCameraWhenFinishedWaking) {
                 mNotificationPanelViewController.launchCamera(
                         false /* animate */, mLastCameraLaunchSource);
@@ -3726,6 +3758,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 }
             }
             updateScrimController();
+            mBurnInProtectionController.startShiftTimer();
         }
     };
 
@@ -4111,6 +4144,17 @@ public class CentralSurfacesImpl extends CoreStartable implements
 
     protected void dismissKeyboardShortcuts() {
         KeyboardShortcuts.dismiss();
+    }
+
+    @Override
+    public void setBlockedGesturalNavigation(boolean blocked) {
+        if (getNotificationPanelViewController() != null) {
+            getNotificationPanelViewController().setBlockedGesturalNavigation(blocked);
+            getNotificationPanelViewController().updateSystemUiStateFlags();
+        }
+        if (getNavigationBarView() != null) {
+            getNavigationBarView().setBlockedGesturalNavigation(blocked, mSysUiState);
+        }
     }
 
     /**

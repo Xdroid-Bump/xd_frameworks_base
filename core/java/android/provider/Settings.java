@@ -3615,6 +3615,8 @@ public final class Settings {
 
             // At one time in System, then Global, but now back in Secure
             MOVED_TO_SECURE.add(Secure.INSTALL_NON_MARKET_APPS);
+
+            MOVED_TO_SECURE.add(Secure.VOLUME_LINK_NOTIFICATION);
         }
 
         @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
@@ -5503,7 +5505,7 @@ public final class Settings {
          * @hide
          */
         @Readable
-        public static final String SHOW_BATTERY_PERCENT = "status_bar_show_battery_percent";
+        public static final String SHOW_BATTERY_PERCENT = "dummy_show_battery_percent";
 
         /**
          * Whether or not to enable multiple audio focus.
@@ -5563,6 +5565,20 @@ public final class Settings {
          */
         @Readable
         public static final String KEYGAURD_MEDIA_ART = "keygaurd_media_art";
+
+        /**
+         * Whether auto brightness is applied one shot when screen is turned on.
+         * Default 0
+         * @hide
+         */
+        public static final String AUTO_BRIGHTNESS_ONE_SHOT = "auto_brightness_one_shot";
+        /**
+         * Whether to play notification sound and vibration if screen is ON
+         * 0 - never
+         * 1 - always
+         * @hide
+         */
+        public static final String NOTIFICATION_SOUND_VIB_SCREEN_ON = "notification_sound_vib_screen_on";
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to
@@ -5625,6 +5641,83 @@ public final class Settings {
         public static final String DATA_DISABLED_ICON = "data_disabled_icon";
 
         /**
+         * Whether to toogle mnmlist summary in Dashboard
+         * @hide
+         */
+        public static final String MNMLIST_SUMMARY = "mnmlist_summary";
+
+        /**
+         * Whether to inverse keys in navigation bar
+         * Default 0
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_INVERSE = "navigation_bar_inverse";
+
+        /**
+         * Whether to enable the ripple animation on fingerprint unlock
+         * @hide
+         */
+        public static final String ENABLE_RIPPLE_EFFECT = "enable_ripple_effect";
+
+        /**
+         * Battery style
+         * @hide
+         */
+        public static final String STATUS_BAR_BATTERY_STYLE = "status_bar_battery_style";
+
+        /**
+          * Statusbar Battery %
+          * 0: Hide the battery percentage
+          * 1: Display the battery percentage inside the icon
+          * 2: Display the battery percentage next to Icon
+          * @hide
+          */
+        public static final String STATUS_BAR_SHOW_BATTERY_PERCENT = "status_bar_show_battery_percent";
+
+        /**
+         * Show battery percentage when charging
+         * @hide
+         */
+        public static final String STATUS_BAR_BATTERY_TEXT_CHARGING = "status_bar_battery_text_charging";
+		
+		/**
+         * QS battery style
+         * @hide
+         */
+        public static final String QS_BATTERY_STYLE = "qs_battery_style";
+
+        /**
+         * QS battery %
+         * 0: Hide the battery percentage
+         * 1: Display the battery percentage inside the icon
+         * 2: Display the battery percentage next to the icon
+         * @hide
+         */
+        public static final String QS_SHOW_BATTERY_PERCENT = "qs_show_battery_percent";
+
+         /**
+         * Whether the torch launch gesture to double tap or long press the power button when the
+         * screen is off should be enabled. *
+         * 0: disabled
+         * 1: long tap power for torch
+         * @hide
+         */
+        public static final String TORCH_POWER_BUTTON_GESTURE = "torch_power_button_gesture";
+
+        /**
+         *  Toggle the wallpaper zoom effects
+         *  0 = 0ff, 1 = on
+         * @hide
+         */
+        public static final String DISPLAY_SETTINGS_WALLPAPER_ZOOM = "display_settings_wallpaper_zoom";
+
+        /**
+         * Whether to show charging animation
+         * @hide
+         */
+        public static final String CHARGING_ANIMATION = "charging_animation";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
@@ -5635,6 +5728,11 @@ public final class Settings {
          */
         public static final String[] LEGACY_RESTORE_SETTINGS = {
         };
+
+        /**
+         * @hide
+         */
+        public static final String USE_OLD_MOBILETYPE = "use_old_mobiletype";
 
         /**
          * These are all public system settings
@@ -5743,7 +5841,6 @@ public final class Settings {
             PRIVATE_SETTINGS.add(POINTER_SPEED);
             PRIVATE_SETTINGS.add(LOCK_TO_APP_ENABLED);
             PRIVATE_SETTINGS.add(EGG_MODE);
-            PRIVATE_SETTINGS.add(SHOW_BATTERY_PERCENT);
             PRIVATE_SETTINGS.add(DISPLAY_COLOR_MODE);
             PRIVATE_SETTINGS.add(DISPLAY_COLOR_MODE_VENDOR_HINT);
             PRIVATE_SETTINGS.add(DOUBLE_TAP_SLEEP_LOCKSCREEN);
@@ -10620,6 +10717,12 @@ public final class Settings {
         public static final String TAP_GESTURE = "tap_gesture";
 
         /**
+         * Whether tethering is allowed to use VPN upstreams
+         */
+        @SuppressLint("NoSettingsProvider")
+        public static final String TETHERING_ALLOW_VPN_UPSTREAMS = "tethering_allow_vpn_upstreams";
+
+        /**
          * Controls whether the people strip is enabled.
          * @hide
          */
@@ -10817,6 +10920,18 @@ public final class Settings {
         public static final String ADAPTIVE_CONNECTIVITY_ENABLED = "adaptive_connectivity_enabled";
 
         /**
+         * Boolean value whether to link ringtone and notification volume
+         * @hide
+         */
+        public static final String VOLUME_LINK_NOTIFICATION = "volume_link_notification";
+
+        /**
+         * Whether to show or hide the arrow for back gesture
+         * @hide
+         */
+        public static final String SHOW_BACK_ARROW_GESTURE = "show_back_arrow_gesture";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
@@ -10977,6 +11092,13 @@ public final class Settings {
          * @hide
          */
         public static final String SECURE_LOCKSCREEN_QS_DISABLED = "secure_lockscreen_qs_disabled";
+
+        /**
+        * Control whether FLAG_SECURE is ignored for all windows.
+         * @hide
+         */
+        @Readable
+        public static final String WINDOW_IGNORE_SECURE = "window_ignore_secure";
 
         /**
          * These entries are considered common between the personal and the managed profile,

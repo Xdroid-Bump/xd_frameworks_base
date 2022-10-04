@@ -256,6 +256,8 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
     private String mPackageName;
     private float mMLResults;
 
+    private boolean mIsBackGestureArrowEnabled;
+
     // For debugging
     private LogArray mPredictionLog = new LogArray(MAX_NUM_LOGGED_PREDICTIONS);
     private LogArray mGestureLogInsideInsets = new LogArray(MAX_NUM_LOGGED_GESTURES);
@@ -307,6 +309,7 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
         }
     };
 
+    private boolean mBlockedGesturalNavigation;
 
     EdgeBackGestureHandler(Context context, OverviewProxyService overviewProxyService,
             SysUiState sysUiState, PluginManager pluginManager, @Main Executor executor,
@@ -376,6 +379,7 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
         mEdgeHapticEnabled = mGestureNavigationSettingsObserver.getEdgeHaptic();
         mIsBackGestureAllowed =
                 !mGestureNavigationSettingsObserver.areNavigationButtonForcedVisible();
+        mIsBackGestureArrowEnabled = mGestureNavigationSettingsObserver.getBackArrowGesture();
 
         final DisplayMetrics dm = res.getDisplayMetrics();
         final float defaultGestureHeight = res.getDimension(
@@ -460,6 +464,10 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
         mIsNavBarShownTransiently = isTransient;
     }
 
+    public void setBlockedGesturalNavigation(boolean blocked) {
+        mBlockedGesturalNavigation = blocked;
+    }
+
     private void disposeInputChannel() {
         if (mInputEventReceiver != null) {
             mInputEventReceiver.dispose();
@@ -522,7 +530,11 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
                     "edge-swipe", mDisplayId);
             mInputEventReceiver = new InputChannelCompat.InputEventReceiver(
                     mInputMonitor.getInputChannel(), Looper.getMainLooper(),
-                    Choreographer.getInstance(), this::onInputEvent);
+                    Choreographer.getInstance(), event -> {
+                        if (!mBlockedGesturalNavigation) {
+                            onInputEvent(event);
+                        }
+                    });
 
             // Add a nav bar panel window
             setEdgeBackPlugin(
@@ -780,6 +792,7 @@ public class EdgeBackGestureHandler extends CurrentUserTracker
                     && isWithinTouchRegion((int) ev.getX(), (int) ev.getY());
             if (mAllowGesture) {
                 mEdgeBackPlugin.setIsLeftPanel(mIsOnLeftEdge);
+                mEdgeBackPlugin.setBackArrowVisibility(mIsBackGestureArrowEnabled);
                 mEdgeBackPlugin.onMotionEvent(ev);
             }
             if (mLogGesture) {

@@ -2034,6 +2034,9 @@
          on grouped devices. -->
     <bool name="config_volumeAdjustmentForRemoteGroupSessions">true</bool>
 
+    <!-- Flag indicating current media Output Switcher version. -->
+    <integer name="config_mediaOutputSwitchDialogVersion">1</integer>
+
     <!-- Flag indicating that an outbound call must have a call capable phone account
          that has declared it can process the call's handle. -->
     <bool name="config_requireCallCapableAccountForHandle">false</bool>
@@ -4395,7 +4398,7 @@
     <string-array name="config_disableApkUnlessMatchedSku_skus_list" translatable="false" />
 
     <!-- Whether or not we should show the option to show battery percentage -->
-    <bool name="config_battery_percentage_setting_available">true</bool>
+    <bool name="config_battery_percentage_setting_available">false</bool>
 
     <!-- Whether or not battery saver should be "sticky" when manually enabled. -->
     <bool name="config_batterySaverStickyBehaviourDisabled">false</bool>

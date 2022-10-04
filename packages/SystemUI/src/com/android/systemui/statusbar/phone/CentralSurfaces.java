@@ -197,6 +197,8 @@ public interface CentralSurfaces extends Dumpable, ActivityStarter, LifecycleOwn
 
     void togglePanel();
 
+    void toggleCameraFlash();
+
     void start();
 
     boolean updateIsKeyguard();
@@ -575,6 +577,8 @@ public interface CentralSurfaces extends Dumpable, ActivityStarter, LifecycleOwn
     float getDisplayDensity();
 
     void extendDozePulse();
+
+    void setBlockedGesturalNavigation(boolean blocked);
 
     GameSpaceManager getGameSpaceManager();
 
